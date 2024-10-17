@@ -1,0 +1,7 @@
+POST http://localhost:9091/getTimeseriesRange HTTP/1.1
+content-type: application/json
+
+{
+    "start": "2015-03-01T10:47:50.52Z",
+    "end": "2015-03-05T20:47:50.52Z"
+}
