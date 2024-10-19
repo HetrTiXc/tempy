@@ -33,5 +33,5 @@ jobs:
     - name: build docker image
       id: build-docker-image
       run: |
-        docker build . --tag ghcr.io/HetrTiXc/tempy:latest
-        docker push ghcr.io/HetrTiXc/tempy:latest
+        docker build . --tag ghcr.io/hetrtixc/tempy:latest
+        docker push ghcr.io/hetrtixc/tempy:latest
