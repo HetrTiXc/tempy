@@ -24,3 +24,14 @@ jobs:
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
+    - name: 'Login to GitHub Container Registry'
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{github.actor}}
+        password: ${{secrets.GITHUB_TOKEN}}
+    - name: build docker image
+      id: build-docker-image
+      run: |
+        docker build . --tag ghcr.io/HetrTiXc/tempy:latest
+        docker push ghcr.io/HetrTiXc/tempy:latest
