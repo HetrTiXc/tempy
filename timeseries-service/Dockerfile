@@ -11,7 +11,7 @@ COPY . .
 RUN cargo build --release --verbose
 
 # Use a minimal base image to run the application
-FROM debian:buster-slim
+FROM debian:bookworm-slim
 
 # Set working directory
 WORKDIR /usr/local/bin
