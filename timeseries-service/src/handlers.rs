@@ -25,11 +25,14 @@ async fn index() -> HttpResponse {
 pub async fn get_data() -> HttpResponse {
     let client = get_influxdb_client();
 
-    let read_query = ReadQuery::new("SELECT * FROM watertemp order by time desc limit 1");
+    let now = Utc::now();
+    let read_query = ReadQuery::new(format!("SELECT * FROM watertemp WHERE time <= '{}' order by time desc limit 1", now.to_rfc3339()));
     match client.query(read_query).await {
         Ok(read_result) => {
             // Assuming InfluxDB returns a JSON-like result here
             // let time_series: Vec<TimeSeriesValue> = read_result.deserialize().expect("Deserialize error");
+
+            println!("{}", read_result);
             
             let json: InfluxDbResult = serde_json::from_str(&read_result).expect("Deserialization Error");
 
@@ -79,9 +82,10 @@ pub async fn write_data(measurement: web::Json<TimeSeriesValue>) -> HttpResponse
     let json_item = serde_json::to_string(&measurement).unwrap();
     let item: TimeSeriesValue = serde_json::from_str(&json_item).unwrap();
 
+    let now = Utc::now();
     let client = get_influxdb_client();
     let write_query = TimeSeriesValue {
-        time: item.time,
+        time: now,
         value: item.value,
     }
     .into_query("watertemp");

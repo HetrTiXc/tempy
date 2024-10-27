@@ -5,6 +5,7 @@ use std::{env, io};
 
 use actix_files as fs;
 use actix_web::{middleware, App, HttpServer};
+use config::Config;
 
 mod models;
 mod handlers;
@@ -17,6 +18,12 @@ mod templates;
 async fn main() -> io::Result<()> {
     env::set_var("RUST_LOG", "actix_web=debug,actix_server=info");
     env_logger::init();
+
+    println!("Starting service");
+
+     let config_result = Config::init();
+     println!("Environment variables: {:?}", config_result);
+ 
 
     HttpServer::new(|| {
         App::new()
