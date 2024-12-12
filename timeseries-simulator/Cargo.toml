@@ -1,0 +1,11 @@
+[package]
+name = "timeseries-simulator"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+chrono = { version = "0.4.38", features = ["serde"] }
+rand = "0.8.5"
+reqwest = { version = "0.12.7", features = ["json"] }
+serde = { version = "1.0.210", features = ["derive"]}
+tokio = { version = "1.40.0", features = ["full"]}

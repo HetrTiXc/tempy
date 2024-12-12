@@ -36,19 +36,19 @@
                 <div id="lastDaysdropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
                     <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
                     <li>
-                        <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white" data-value="yesterday">Yesterday</a>
+                        <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white" data-value="today">I dag</a>
                     </li>
                     <li>
-                        <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white" data-value="today">Today</a>
+                      <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white" data-value="yesterday">I går</a>
                     </li>
                     <li>
-                        <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white" data-value="last7days">Last 7 days</a>
+                        <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white" data-value="last7days">Siste 7 dager</a>
                     </li>
                     <li>
-                        <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white" data-value="last30days">Last 30 days</a>
+                        <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white" data-value="last30days">Siste 30 dager</a>
                     </li>
                     <li>
-                        <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white" data-value="last90days">Last 90 days</a>
+                        <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white" data-value="last90days">Siste 90 dager</a>
                     </li>
                     </ul>
                 </div>
@@ -197,6 +197,12 @@ document.addEventListener('DOMContentLoaded', (event) => {
         let end = new Date();
 
         switch (value) {
+            case 'today':
+                console.log('Selected Today');
+                start = new Date();
+                start.setHours(0,0,0,0);
+                end = new Date(); 
+                break;
             case 'yesterday':
                 console.log('Selected Yesterday');
                 start = new Date();
@@ -204,12 +210,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 start.setHours(0,0,0,0);
                 end = new Date();
                 end.setHours(0,0,0,0);
-                break;
-            case 'today':
-                console.log('Selected Today');
-                start = new Date();
-                start.setHours(0,0,0,0);
-                end = new Date(); 
                 break;
             case 'last7days':
                 console.log('Selected Last 7 days');
@@ -237,69 +237,84 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 break;
         }
         // Log to verify start and end dates
-    console.log('Start:', start);
-    console.log('End:', end);
+        console.log('Start:', start);
+        console.log('End:', end);
 
-    // Fetch and update chart data based on new date range
-    updateChartData(start, end);
+        // Fetch and update chart data based on new date range
+        updateChartData(start, end);
     }
     async function updateChartData(start, end) {
-    const payload = {
-      start: start,
-      end: end,
-    };
+      const payload = {
+        start: start,
+        end: end,
+      };
 
-    try {
-      const response = await fetch('/getTimeseriesRange', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
+      try {
+        const response = await fetch('/getTimeseriesRange', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        console.log(data);
+
+        const seriesData = [];
+        const categories = [];
+
+        const series = data.results[0].series[0];
+        series.values.forEach((entry) => {
+          categories.push(entry.time);
+          seriesData.push(entry.value);
+        });
+
+        seriesData.push()
+
+        console.log(categories);
+        console.log(seriesData);
+
+        if (chart) {
+          chart.updateSeries([
+            {
+              name: 'watertemp',
+              data: seriesData,
+            },
+          ]);
+          chart.updateOptions({
+            xaxis: {
+              categories: categories,
+            },
+          });
+        } else {
+          chartOptions.series = [{ name: 'watertemp', data: seriesData }];
+          chartOptions.xaxis.categories = categories;
+          chart = new ApexCharts(document.getElementById('area-chart'), chartOptions);
+          chart.render();
+        }
+      } catch (error) {
+        console.error('Error fetching the data:', error);
+      }
+
+      // Load current temperatur
+      const currentTempResponse = await fetch('/getTimeseriesValue', {
+          method: 'GET',
       });
-      const data = await response.json();
-      console.log(data);
 
-      const seriesData = [];
-      const categories = [];
+      const currentTempData = await currentTempResponse.json();
 
-      const series = data.results[0].series[0];
-      series.values.forEach((entry) => {
-        categories.push(entry.time);
-        seriesData.push(entry.value);
-      });
+      console.log("tempresp:", currentTempData);
 
-      seriesData.push()
-
-      console.log(categories);
-      console.log(seriesData);
-
-      const current = seriesData[0].toFixed(1);
+      const current = currentTempData.results[0].series[0].values[0].value.toFixed(1);
       var heading = document.getElementById('current');
       heading.textContent = current + '°C';
-
-      if (chart) {
-        chart.updateSeries([
-          {
-            name: 'watertemp',
-            data: seriesData,
-          },
-        ]);
-        chart.updateOptions({
-          xaxis: {
-            categories: categories,
-          },
-        });
-      } else {
-        chartOptions.series = [{ name: 'watertemp', data: seriesData }];
-        chartOptions.xaxis.categories = categories;
-        chart = new ApexCharts(document.getElementById('area-chart'), chartOptions);
-        chart.render();
-      }
-    } catch (error) {
-      console.error('Error fetching the data:', error);
     }
-  }
+    // Initially load last day
+    start = new Date();
+    start.setHours(0,0,0,0);
+    end = new Date();
+
+    updateChartData(start, end);
 });
 
 </script>
