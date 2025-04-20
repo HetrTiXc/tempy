@@ -85,7 +85,7 @@ pub async fn write_data(measurement: web::Json<TimeSeriesValue>) -> HttpResponse
     let now = Utc::now();
     let client = get_influxdb_client();
     let write_query = TimeSeriesValue {
-        time: now,
+        time: item.time,
         value: item.value,
     }
     .into_query("watertemp");
